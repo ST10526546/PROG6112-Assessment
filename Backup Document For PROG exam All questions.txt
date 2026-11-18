@@ -1,0 +1,486 @@
+Backup Document For PROG exam 
+
+Question 1 :
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+
+package com.mycompany.question1;
+
+import java.text.DecimalFormat;
+import java.util.Scanner;
+
+public class Question1 {
+
+    // Q1.1 - Storing the product names in a one-dimensional array.
+    private static final String[] PRODUCTS = {
+        "Cozy Nights Monarch",
+        "Restonic Barbados",
+        "Sealy Phuket"
+    };
+
+    public static void main(String[] args) {
+        // Q1.1 - Each row is a product and each column is a month.
+        int[][] sales = new int[PRODUCTS.length][3];
+
+        try (Scanner input = new Scanner(System.in)) {
+            for (int product = 0; product < sales.length; product++) {
+                for (int month = 0; month < sales[product].length; month++) {
+                    System.out.printf(
+                            "Enter number of sales for month %d for %s mattress: ",
+                            month + 1, PRODUCTS[product]);
+
+                    if (!input.hasNext()) {
+                        return;
+                    }
+
+                    while (!input.hasNextInt()) {
+                        input.next();
+                        System.out.print("Enter a whole number of 0 or more: ");
+                        if (!input.hasNext()) {
+                            return;
+                        }
+                    }
+
+                    int count = input.nextInt();
+                    if (count < 0) {
+                        System.out.println("Sales cannot be negative. Try again");
+                        month--;
+                    } else {
+                        sales[product][month] = count;
+                    }
+                }
+                System.out.println();
+            }
+        }
+
+        Product product = new Product(PRODUCTS, sales);
+        new PrintProduct(product).printReport();
+    }
+
+    // Q1.2 - Interface with the three required calculation methods.
+    public interface IProduct {
+        int GetTotalProductsSold();
+        double GetAverageProductSold();
+        String GetMostPopularProduct();
+    }
+
+    // Q1.2 - Perform the calculations using the sales array.
+    public static class Product implements IProduct {
+        private final String[] productNames;
+        private final int[][] sales;
+
+        public Product(String[] productNames, int[][] sales) {
+            this.productNames = productNames;
+            this.sales = sales;
+        }
+
+        @Override
+        public int GetTotalProductsSold() {
+            int total = 0;
+
+            for (int[] monthlySales : sales) {
+                total += sumSales(monthlySales);
+            }
+
+            return total;
+        }
+
+        @Override
+        public double GetAverageProductSold() {
+            int numberOfEntries = 0;
+
+            for (int[] monthlySales : sales) {
+                numberOfEntries += monthlySales.length;
+            }
+
+            // The sample average uses all nine monthly entries: 153 / 9 = 17.
+            return numberOfEntries == 0
+                    ? 0.0 : (double) GetTotalProductsSold() / numberOfEntries;
+        }
+
+        public double getAverageThreeMonthSalesPerProduct() {
+            return sales.length == 0
+                    ? 0.0 : (double) GetTotalProductsSold() / sales.length;
+        }
+
+        @Override
+        public String GetMostPopularProduct() {
+            if (sales.length == 0) {
+                return "No products";
+            }
+
+            int bestProduct = 0;
+            int highestTotal = sumSales(sales[0]);
+
+            // Compare three-month totals. If totals tie, keep the first product.
+            for (int product = 1; product < sales.length; product++) {
+                int productTotal = sumSales(sales[product]);
+
+                if (productTotal > highestTotal) {
+                    highestTotal = productTotal;
+                    bestProduct = product;
+                }
+            }
+
+            return productNames[bestProduct] + " (" + highestTotal + ")";
+        }
+
+        private int sumSales(int[] monthlySales) {
+            int total = 0;
+
+            for (int count : monthlySales) {
+                total += count;
+            }
+
+            return total;
+        }
+    }
+
+    // Q1.3 - Print each result using a separate method.
+    public static class PrintProduct {
+        private final Product product;
+        private final DecimalFormat averageFormat = new DecimalFormat("0.##");
+
+        public PrintProduct(Product product) {
+            this.product = product;
+        }
+
+        public void printReport() {
+            System.out.println("PRODUCT SALES REPORT - 2026");
+            System.out.println("**************");
+            printTotalProductSales();
+            printAverageProductSales();
+            printMostPopularProduct();
+        }
+
+        public void printTotalProductSales() {
+            System.out.println("TOTAL PRODUCT SALES: "
+                    + product.GetTotalProductsSold());
+        }
+
+        public void printAverageProductSales() {
+            System.out.println("AVERAGE PRODUCT SALES (PER PRODUCT PER MONTH): "
+                    + averageFormat.format(product.GetAverageProductSold()));
+
+            System.out.println("AVERAGE THREE-MONTH SALES PER PRODUCT: "
+                    + averageFormat.format(product.getAverageThreeMonthSalesPerProduct()));
+        }
+
+        public void printMostPopularProduct() {
+            System.out.println("MOST POPULAR PRODUCT: "
+                    + product.GetMostPopularProduct());
+        }
+    }
+}
+
+
+
+Question 1 Junit Test:
+
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/UnitTests/JUnit5TestClass.java to edit this template
+ */
+package com.mycompany.question1;
+
+import com.mycompany.question1.Question1.Product;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class Question1Test {
+
+    // Q1.4 - Using the nine sales figures from the sample.
+    private final Product product = new Product(
+            new String[]{
+                "Cozy Nights Monarch",
+                "Restonic Barbados",
+                "Sealy Phuket"
+            },
+            new int[][]{
+                {25, 18, 20},
+                {15, 10, 12},
+                {18, 15, 20}
+            }
+    );
+
+    // Q1.4 - Unit Test 1 checks the total across all three products.
+    @Test
+    public void GetTotalProductSales_WithValidData_ReturnsCorrectValue() {
+        int actualTotal = product.GetTotalProductsSold();
+
+        assertEquals(153, actualTotal);
+    }
+
+    // Q1.4 - Unit Test 2 checks the average across the nine monthly entries.
+    @Test
+    public void GetAverageSales_WithValidData_ReturnsCorrectValue() {
+        double actualAverage = product.GetAverageProductSold();
+
+        assertEquals(17.0, actualAverage, 0.0001);
+    }
+}
+
+
+Question 2: 
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ */
+
+package com.mycompany.question2;
+
+
+import java.awt.GridLayout;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+public class Question2 {
+
+    private static final Path DATA_FILE = Path.of("data.txt");
+    private static final String DIVIDER = "**************";
+
+    // Q2.2 - The customer name, mattress selection and price fields.
+    private final JTextField customerField = new JTextField(20);
+    private final JComboBox<String> productBox = new JComboBox<>(new String[]{
+        "Cozy Nights Monarch",
+        "Restonic Barbados",
+        "Sealy Phuket"
+    });
+    private final JTextField priceField = new JTextField(20);
+
+    private final JFrame window = new JFrame("Product App");
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Question2().showForm());
+    }
+
+    // Q2.1 - Build and display of the Swing sales form.
+    private void showForm() {
+        JPanel form = new JPanel(new GridLayout(4, 2, 10, 10));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Q2.2 - Add the input fields and their labels to the form.
+        form.add(new JLabel("Customer Name:"));
+        form.add(customerField);
+
+        form.add(new JLabel("Select Product:"));
+        form.add(productBox);
+
+        form.add(new JLabel("Enter Price (R):"));
+        form.add(priceField);
+
+        JButton processButton = new JButton("PROCESS");
+        processButton.addActionListener(event -> processSale());
+        form.add(new JLabel());
+        form.add(processButton);
+
+        window.setJMenuBar(createMenuBar());
+        window.setContentPane(form);
+        window.getRootPane().setDefaultButton(processButton);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.pack();
+        window.setLocationRelativeTo(null);
+        window.setVisible(true);
+    }
+
+    // Q2.3 - Read the form, calculate the amounts, save and display the sale.
+    private void processSale() {
+        String customer = customerField.getText().trim();
+        String product = (String) productBox.getSelectedItem();
+        String priceText = priceField.getText().trim().replace(',', '.');
+
+        if (customer.isEmpty()) {
+            showError("Enter the customer's name.");
+            return;
+        }
+
+        // Accept prices such as 3500, 3500.50 or 3500,50.
+        if (!priceText.matches("[0-9]+(\\.[0-9]{1,2})?")) {
+            showError("Enter a valid price with up to two decimal places.");
+            return;
+        }
+
+        BigDecimal price = new BigDecimal(priceText).setScale(2);
+
+        if (price.signum() <= 0) {
+            showError("Enter a price greater than zero.");
+            return;
+        }
+
+        ProductCalculations sale = new ProductCalculations(price);
+        String details = String.format(
+                "Customer Name: %s%nProduct: %s%nPrice: R %s%n"
+                + "VAT: R %s%nCOMMISSION: R %s%nTOTAL: R %s",
+                customer, product, price.toPlainString(),
+                sale.calculateVat().toPlainString(),
+                sale.calculateCommission().toPlainString(),
+                sale.calculateTotal().toPlainString());
+
+        try {
+            saveSale(details);
+            JOptionPane.showMessageDialog(window, details, "Sale Processed",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException exception) {
+            showError("The sale could not be saved to data.txt.");
+        }
+    }
+
+    // Q2.3 - Write the heading once and append each sale to the log.
+    private void saveSale(String details) throws IOException {
+        String newLine = System.lineSeparator();
+        String entry = details + newLine + DIVIDER + newLine;
+
+        if (Files.notExists(DATA_FILE) || Files.size(DATA_FILE) == 0) {
+            entry = "DATA LOG" + newLine + DIVIDER + newLine + entry;
+        }
+
+        Files.writeString(DATA_FILE, entry, StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(window, message, "Sale Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Q2.4 - Create File > Exit and Tools > Process and Clear.
+    private JMenuBar createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu fileMenu = new JMenu("File");
+        JMenuItem exitItem = new JMenuItem("Exit");
+        exitItem.addActionListener(event -> window.dispose());
+        fileMenu.add(exitItem);
+
+        JMenu toolsMenu = new JMenu("Tools");
+        JMenuItem processItem = new JMenuItem("Process");
+        JMenuItem clearItem = new JMenuItem("Clear");
+
+        // The button and the menu item both use the same processing method.
+        processItem.addActionListener(event -> processSale());
+        clearItem.addActionListener(event -> {
+            customerField.setText("");
+            priceField.setText("");
+            productBox.setSelectedIndex(0);
+            customerField.requestFocusInWindow();
+        });
+
+        toolsMenu.add(processItem);
+        toolsMenu.add(clearItem);
+        menuBar.add(fileMenu);
+        menuBar.add(toolsMenu);
+
+        return menuBar;
+    }
+
+    // Q2.5 - Declaring the three methods required by the interface.
+    public interface IProductCalculations {
+        double GetVat();
+        double GetCommission();
+        double GetTotal();
+    }
+
+    // Q2.5 - Calculate VAT, commission and total using decimal money values.
+    public static class ProductCalculations implements IProductCalculations {
+
+        private static final BigDecimal VAT_RATE = new BigDecimal("0.15");
+        private static final BigDecimal COMMISSION_RATE = new BigDecimal("0.05");
+
+        private final BigDecimal price;
+
+        public ProductCalculations(BigDecimal price) {
+            this.price = price;
+        }
+
+        @Override
+        public double GetVat() {
+            return calculateVat().doubleValue();
+        }
+
+        @Override
+        public double GetCommission() {
+            return calculateCommission().doubleValue();
+        }
+
+        @Override
+        public double GetTotal() {
+            return calculateTotal().doubleValue();
+        }
+
+        private BigDecimal calculateVat() {
+            return price.multiply(VAT_RATE).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        private BigDecimal calculateCommission() {
+            return price.multiply(COMMISSION_RATE).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        private BigDecimal calculateTotal() {
+            // Add the rounded amounts so the total matches the displayed values.
+            return price.add(calculateVat()).add(calculateCommission());
+        }
+    }
+}
+
+Question 2 Junit Test:
+
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/UnitTests/JUnit5TestClass.java to edit this template
+ */
+package com.mycompany.question2;
+
+
+import com.mycompany.question2.Question2.ProductCalculations;
+import java.math.BigDecimal;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class Question2Test {
+
+    // Q2.6 - Uses the R3 500 mattress price from the sample.
+    private final ProductCalculations sale =
+            new ProductCalculations(new BigDecimal("3500.00"));
+
+    // Q2.6 - Unit Test 1 checks that 15% VAT is R525.00.
+    @Test
+    public void GetVat_WithValidData_ReturnsCorrectValue() {
+        double actualVat = sale.GetVat();
+
+        assertEquals(525.00, actualVat, 0.0001);
+    }
+
+    // Q2.6 - Unit Test 2 checks the price plus VAT and commission.
+    @Test
+    public void GetTotal_WithValidData_ReturnsCorrectValue() {
+        double actualTotal = sale.GetTotal();
+
+        assertEquals(4200.00, actualTotal, 0.0001);
+    }
+}
+
+
+
+
